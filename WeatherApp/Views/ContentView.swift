@@ -33,12 +33,22 @@ struct ContentView: View {
                 }
                 .padding()
             }
-        }.onAppear(){
+            .alert(isPresented: $locationManager.showAlert) {
+                Alert(
+                    title: Text("Location access denied"),
+                    message: Text("Please go to Settings and turn on the permissions"),
+                    primaryButton: .cancel(Text("Cancel")),
+                    secondaryButton: .default(Text("Settings"), action: {
+                        if let url = URL(string: UIApplication.openSettingsURLString), UIApplication.shared.canOpenURL(url) {
+                            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+                        }
+                    }))
+            }
+        }
+        .onAppear(){
             locationManager.startLocationServices()
         }
     }
-    
-    
 }
 
 struct LocationLabel: View {

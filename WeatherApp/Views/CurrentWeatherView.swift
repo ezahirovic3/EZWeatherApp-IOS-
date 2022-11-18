@@ -28,7 +28,7 @@ struct CurrentWeatherView: View {
                 .fontWeight(.bold)
             Divider().background(.white)
             HStack{
-                WidgetView(image:"wind", text: "wind",value:weatherViewModel.windSpeed+" m/s")
+                WidgetView(image:"wind", text: "wind",value:weatherViewModel.windSpeed+" km/h")
                 Divider()
                     .background(.white)
                 

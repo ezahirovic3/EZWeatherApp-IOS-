@@ -15,8 +15,9 @@ final class LocationManager: NSObject, ObservableObject {
     
     @Published var longitude : CLLocationDegrees?
     @Published var latitude : CLLocationDegrees?
-    @Published var city = "Novi Travnik"
-    @Published var country = "BA"
+    @Published var city: String = ""
+    @Published var country = ""
+    @Published var showAlert = false
     
     override init() {
         super.init()
@@ -27,10 +28,12 @@ final class LocationManager: NSObject, ObservableObject {
     func startLocationServices() {
         if locationManager.authorizationStatus == .authorizedAlways || locationManager.authorizationStatus == .authorizedWhenInUse {
             locationManager.startUpdatingLocation()
+            showAlert = false
+            getLocation()
         } else {
             locationManager.requestWhenInUseAuthorization()
+            
         }
-        weatherViewModel.getLocation()
     }
     
 }
@@ -40,16 +43,31 @@ extension LocationManager: CLLocationManagerDelegate {
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
         if locationManager.authorizationStatus == .authorizedAlways || locationManager.authorizationStatus == .authorizedWhenInUse {
             locationManager.startUpdatingLocation()
+            showAlert = false
+        } else {
+            showAlert = true
+            getLocation()
         }
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let latest = locations.first else { return }
-        weatherViewModel.longitude = latest.coordinate.longitude
-        weatherViewModel.latitude = latest.coordinate.latitude
-        weatherViewModel.getLocation()
-        self.city = weatherViewModel.city
-        self.country = weatherViewModel.country
+        showAlert = false 
+        longitude = latest.coordinate.longitude
+        latitude = latest.coordinate.latitude
+        getLocation()
+    }
+    
+    func getLocation() {
+        let latitude = latitude ?? 44.1748
+        let longitude = longitude ?? 17.6634
+        let location = CLLocation(latitude:latitude, longitude:longitude)
+        location.fetchCityAndCountry { city, country, error in
+            guard let city = city, let country = country, error == nil else { return }
+            self.city = city
+            self.country = locale(for: country.replacingOccurrences(of: "and", with: "&"))
+        }
+        weatherViewModel.getWeatherInternal(longitude: longitude, latitude: latitude)
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

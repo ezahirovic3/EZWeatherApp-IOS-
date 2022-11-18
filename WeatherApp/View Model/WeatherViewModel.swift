@@ -11,34 +11,14 @@ import MapKit
 import SwiftUI
 
 final class WeatherViewModel: ObservableObject {
-    @Published var longitude : CLLocationDegrees
-    @Published var latitude : CLLocationDegrees
-    
-    @Published var city = ""
-    @Published var country = ""
     
     @Published var weather = WeatherResponse.empty()
     
     init(){
         //getLocation()
-        latitude = 44.1748
-        longitude = 17.6634
     }
     
-    func getLocation() {
-        //let latitude = latitude ?? 44.1748
-        //let longitude = longitude ?? 17.6634
-        let location = CLLocation(latitude:latitude, longitude:longitude)
-        location.fetchCityAndCountry { city, country, error in
-            guard let city = city, let country = country, error == nil else { return }
-            self.city = city
-            self.country = locale(for: country)
-        }
-        getWeatherInternal(longitude: longitude, latitude: latitude)
-    }
-    
-    private func getWeatherInternal( longitude:CLLocationDegrees , latitude:CLLocationDegrees) {
-        
+    func getWeatherInternal( longitude:CLLocationDegrees , latitude:CLLocationDegrees) {
         let urlString = WeatherApi.getCurrentWeatherURL(latitude: latitude, longitude: longitude)
         
         guard let url = URL(string: urlString) else {return}
@@ -75,7 +55,7 @@ final class WeatherViewModel: ObservableObject {
     }
     
     var windSpeed: String {
-        return String(format: "%0.1f", weather.current.windSpeed)
+        return String(format: "%0.1f", weather.current.windSpeed*3.6)
     }
     
     var humidity: String {
@@ -156,13 +136,13 @@ final class WeatherViewModel: ObservableObject {
 
 
 // Nema koda za BiH
-private func locale(for fullCountryName : String) -> String {
+func locale(for fullCountryName : String) -> String {
     let locales : String = ""
     for localeCode in NSLocale.isoCountryCodes {
         let identifier = NSLocale(localeIdentifier: localeCode)
         let countryName = identifier.displayName(forKey: NSLocale.Key.countryCode, value: localeCode)
         if fullCountryName.lowercased() == countryName?.lowercased() {
-            return localeCode
+                return localeCode
         }
     }
     return locales
